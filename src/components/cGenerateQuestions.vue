@@ -120,9 +120,7 @@ const cancel = () => {
   stop();
 };
 
-const remove = (id) => {
-  // 可能有问题，需要验证测试
-  // 如果外部移除一个插入的题目，要在这个地方还原
+const removeInsert = (id) => {
   const found = questions.value.index((it) => it.id === id);
   found && (found.inserted = false);
   emits("on-tap-remove", found);
@@ -131,7 +129,7 @@ const remove = (id) => {
 defineExpose({
   open,
   cancel,
-  remove,
+  removeInsert,
 });
 </script>
 <style scoped>
