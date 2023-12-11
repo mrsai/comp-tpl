@@ -1,10 +1,10 @@
-import { onUnmounted, reactive } from 'vue';
+import { onUnmounted, reactive } from "vue";
 
 /**
- * 
- * @param {*} fn 一个异步函数 
+ *
+ * @param {*} fn 一个异步函数
  * @param {*} interval 轮询间隔
- * @returns 
+ * @returns
  */
 function usePolling(fn, interval) {
   const data = reactive({
@@ -46,6 +46,4 @@ function usePolling(fn, interval) {
   return { data, startPolling, stopPolling };
 }
 
-export {
-  usePolling
-};
+export { usePolling };

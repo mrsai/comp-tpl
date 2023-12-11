@@ -8,9 +8,10 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "element-ui": "^2.15.14",
+    "vis-timeline": "^7.7.3",
     "vue": "^2.7.7",
     "vue-router": "^3.5.4",
-    "element-ui": "^2.15.14",
     "vue2-datepicker": "^3.11.1"
   },
   "devDependencies": {

@@ -25,6 +25,7 @@
       @on-tap-insert="onTapInsert"
       @on-tap-remove="onTapRemove"
     />
+    <CPlayer />
   </div>
 </template>
 
@@ -35,6 +36,7 @@ import CAction from "./components/cActions.vue";
 import COverview from "./components/cOverview.vue";
 import CCaption from "./components/cCaption.vue";
 import CExercises from "./components/cExercises.vue";
+import CPlayer from "./components/cPlayer.vue";
 import CGenerateQuestions from "./components/cGenerateQuestions.vue";
 
 const IntelligentQuestionRef = ref(null);
