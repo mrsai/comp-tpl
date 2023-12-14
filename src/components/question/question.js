@@ -14,6 +14,7 @@ class Question {
    * @param {*} options.duration 视频的时长
    * @returns
    */
+
   constructor(player, questions, options) {
     if (!player) {
       throw new Error("未找到关联的视频播放器，确认视频播放器已经初始化完成");
@@ -46,6 +47,18 @@ class Question {
     this.mark.destroy();
     this.board = null;
     this.mark = null;
+  }
+
+  update(questions) {
+    // 更新题目
+    // 更新答题板的渲染
+    // 更新 相同 durition 节点的题目
+    if (questions.length) {
+      // marks 答题数据更新
+      this.mark.update(questions);
+      // 通知答题板更新页面数据
+      this.board.applay();
+    }
   }
 }
 

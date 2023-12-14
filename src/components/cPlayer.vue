@@ -118,14 +118,16 @@ const intiPalyer = () => {
   });
   player.$video.on("timeupdate", function () {
     const time = parseInt(this.currentTime);
-    // paipingyixia, question 得到的是一个数组，因为可能有多个试题
     // 因此，在 insert 的时候，需要判断是否已经存在，如果存在，就不再插入
-    const question = que.mark.get(time);
+    // const question = que.mark.get(time);
+    const question1 = que.mark.getOne(time);
     const skim = que.mark.getSkim(time);
-
-    if (!skim && question) {
-      que.mark.setSkim(time, question);
-      que.board.open(question);
+    // question 是一个数组，因为可能存在多个问题
+    // question1 是一个对象，因为只有一个问题, 这个比较烦
+    // 如果问题没有答案，并且从未打开过。就打开题目、
+    if (!skim && time === (question1 && question1.duration)) {
+      que.mark.setSkim(time, question1);
+      que.board.open(question1);
       player.$video.trigger("pause");
     }
   });
@@ -156,7 +158,26 @@ const initQue = () => {
   });
 
   que.board.on("on-tap-confirm", (data) => {
-    console.log("ontap", data);
+    // console.log("ontap", data);
+    // 开始答题
+    // 答题结果
+    // 关闭答题
+    // 使用 promise 模拟异步可以在这里进行异步请求
+    // 最好返回一个 promise 对象，promise 这里会有一个loading的状态控制
+    // 模拟一个在外部进行的异步请求提交答案，当前提交答案也可以在组件中直接提交，无所谓，
+    // 最后要把把题目的答案更新到题目中。
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // 设置该题目的答案
+        const data1 = data.map((it) => {
+          it.result = Math.random() > 0.5 ? 1 : 2;
+          return it;
+        });
+        // 更新答题结果【伪造的result作为答题的结果】
+        que.update(data1);
+        resolve();
+      }, 3000);
+    });
   });
 
   que.board.on("on-tap-skip", (data) => {
@@ -333,6 +354,10 @@ onMounted(() => {
 
 const onTap = () => {
   console.log(que.mark.has(40));
+  // insert 当然可以多个，但是如果产品没有需求
+  // 建议 insert之前，先判断是否已经存在，如果存在，就不再插入
+  // que.mark.has(40) 或者 getOne都可以
+  //  40s 之前已经存在了，就不再插入了， 因为mark兼容了可以插入多个题目，如果只打算插入一个题目，请判断是否已经存在
   que.mark.insert({
     id: 3,
     label: 3,

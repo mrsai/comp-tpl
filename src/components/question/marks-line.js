@@ -29,7 +29,6 @@ MarksLine.prototype.init = function () {
       : (acc[cur.duration] = [cur]);
     return acc;
   }, this.questions);
-
   // 渲染一下界面
   this.vm = Vue.extend(CMarkLine);
   this.instance = new this.vm({
@@ -138,12 +137,38 @@ MarksLine.prototype.get = function (time) {
   if (arguments.length === 0) return this.questions;
   return this.questions[time];
 };
+/**
+ * 这个获取数组中的第一个元素
+ * 目前不知道产品的请求可以插入几个题目，所以扩了一个这个方法
+ */
+MarksLine.prototype.getOne = function (time) {
+  if (this.questions[time]) {
+    return this.questions[time][0];
+  }
+  return null;
+};
 
 /**
- * 修改某个题目的属性，暂时没有涉及
+ * 修改某个题目的属性，不包括 duration, 如果修改 du ，使用 moveTo 方法
  * @param {*} question
  */
-MarksLine.prototype.set = function () {};
+MarksLine.prototype.set = function (question) {
+  const questions = this.questions[question.duration];
+  const found = questions.find((item) => item.id === question.id);
+  found && Object.assign(found, question);
+  this.setMarks();
+};
+
+/**
+ * 重新修改该事件节点下的所有题目属性( 更新节点下的所有题目)
+ */
+MarksLine.prototype.update = function (questions) {
+  if (questions.length) {
+    const duration = questions[0].duration;
+    this.questions[duration] = questions;
+    this.setMarks();
+  }
+};
 
 /***
  *

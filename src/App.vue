@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <CTimeline />
     <CTabs @on-tab-change="onTabChange" :tab-list="tabList">
       <template #overview>
         <COverview :step="overview.step" :content="overview.content" />
@@ -26,6 +27,16 @@
       @on-tap-remove="onTapRemove"
     />
     <CPlayer />
+
+    <el-button type="primary" @click="open">OpenADialog</el-button>
+
+    <CDialog
+      ref="cDialogRef"
+      title="智能出题"
+      @on-confirm="onConfirm"
+      @on-cancel="onCancel"
+      >我是一个弹窗</CDialog
+    >
   </div>
 </template>
 
@@ -38,8 +49,11 @@ import CCaption from "./components/cCaption.vue";
 import CExercises from "./components/cExercises.vue";
 import CPlayer from "./components/cPlayer.vue";
 import CGenerateQuestions from "./components/cGenerateQuestions.vue";
+import CDialog from "./components/cDialog.vue";
+import CTimeline from "./components/cTimeline.vue";
 
 const IntelligentQuestionRef = ref(null);
+const cDialogRef = ref(null);
 
 const tabs = ref([
   {
@@ -99,6 +113,16 @@ const onTapInsert = (it) => {
 const onTapRemove = (it) => {
   console.log(it, "remove");
 };
+
+const open = () => {
+  cDialogRef.value.openDialog();
+};
+const onConfirm = () => {
+  console.log("onConfirm");
+  cDialogRef.value.closeDialog();
+};
+
+const onCancel = () => {};
 </script>
 
 <style>

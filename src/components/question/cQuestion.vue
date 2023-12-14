@@ -1,8 +1,15 @@
 <template>
   <div class="c-question" v-show="visable">
-    <div class="c-question-inner" v-for="it in formData" :key="it.id">
+    <div v-if="res === 1">
+      正确 <el-button @click="onTapSkip">跳过</el-button>
+    </div>
+    <div v-else-if="res === 2">
+      错误 <el-button @click="onTapSkip">跳过</el-button>
+    </div>
+    <div v-else class="c-question-inner" v-for="it in formData" :key="it.id">
       <div class="c-questiom-type">{{ it.id }}</div>
       <div class="c-question-title" v-text="it.label"></div>
+      <div>{{ it.result }}</div>
       <div class="c-question-options">
         <el-input type="text" v-model="it.answer"></el-input>
         <el-radio-group v-model="it.answer">
@@ -30,10 +37,18 @@
 </template>
 
 <script setup name="CQuestion">
-import { ref, watchEffect, defineExpose } from "vue";
+import { ref, watchEffect, defineExpose, computed } from "vue";
 const visable = ref(false);
 
 const formData = ref([]);
+
+const res = computed(() => {
+  if (formData.value[0] && formData.value[0].result) {
+    return formData.value[0].result;
+  } else {
+    return null;
+  }
+});
 
 watchEffect(() => {
   if (props.question) {
