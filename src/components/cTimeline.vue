@@ -25,6 +25,15 @@ onMounted(() => {
   measure.on("on-pointer-drag-end", (data) => {
     console.log(data);
   });
+  measure.on("on-item-drag-end", (data) => {
+    console.log(data);
+  });
+  measure.on("on-item-click", (data) => {
+    console.log("on-item-click", data);
+  });
+  measure.on("on-item-del-click", (data) => {
+    console.log("on-item-del-click", data);
+  });
 
   // 选择需要拖拽的元素
   // const draggableElement = document.getElementById("draggable");

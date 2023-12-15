@@ -127,7 +127,7 @@ const intiPalyer = () => {
     // 如果问题没有答案，并且从未打开过。就打开题目、
     if (!skim && time === (question1 && question1.duration)) {
       que.mark.setSkim(time, question1);
-      que.board.open(question1);
+      que.board.open([question1]);
       player.$video.trigger("pause");
     }
   });
