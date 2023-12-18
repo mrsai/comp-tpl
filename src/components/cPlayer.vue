@@ -15,10 +15,14 @@
 
 <script setup name="CXTPlayer">
 import { onMounted, onUnmounted, ref } from "vue";
-import { Question } from "./question/question.js";
+// import { Question } from "./question/question.js";
 import Xtplayer from "../utils/Xtplayer.min.js";
 const xtPlayerOutter = ref(null);
+import EventsLine from "./question/events-line.js";
+import QuestionBoard from "./question/question-board.js";
 let player;
+let eventsLine = null;
+let board = null;
 let que = null;
 
 const intiPalyer = () => {
@@ -111,79 +115,126 @@ const intiPalyer = () => {
     startTime: 12, //点播：设置开始播放时间， 直播：设置直播已经播放时间(秒)，此值会根据播放进度而变化，其中直播为了统计打点
     debug: true, //开发调试
   });
-  initQue();
-  player.$video.on("seeked.event", function () {
-    player.$video.trigger("pause");
-    return false;
-  });
-  player.$video.on("timeupdate", function () {
-    const time = parseInt(this.currentTime);
-    // 因此，在 insert 的时候，需要判断是否已经存在，如果存在，就不再插入
-    // const question = que.mark.get(time);
-    const question1 = que.mark.getOne(time);
-    const skim = que.mark.getSkim(time);
-    // question 是一个数组，因为可能存在多个问题
-    // question1 是一个对象，因为只有一个问题, 这个比较烦
-    // 如果问题没有答案，并且从未打开过。就打开题目、
-    if (!skim && time === (question1 && question1.duration)) {
-      que.mark.setSkim(time, question1);
-      que.board.open([question1]);
-      player.$video.trigger("pause");
-    }
-  });
-};
 
-const initQue = () => {
-  que = new Question(
-    player,
-    [
+  const questions = {
+    10: [
       {
         id: 1,
         label: "1",
         duration: 10,
       },
+    ],
+    20: [
       {
-        id: 2,
-        label: 2,
+        id: 3,
+        label: "3",
         duration: 20,
       },
     ],
-    {
-      duration: 46,
-    }
-  );
+  };
 
-  que.mark.on("on-click", (data) => {
-    console.log("on-click", data, 1);
+  const markContainer = player.$controls.get(0);
+
+  const maskContainer = player.$container.find(".xt_video_player_wrap").get(0);
+
+  board = new QuestionBoard(maskContainer);
+  eventsLine = new EventsLine(markContainer, [10, 20]);
+  eventsLine.on("on-item-click", ({ duration }) => {
+    console.log("on-item-click");
+    board.open(questions[duration]);
+  });
+  board.on("on-tap-confirm", (data) => {
+    console.log("on-tap-confirm", data);
+    // board.applay([
+    //   {
+    //     id: 1,
+    //     label: "1",
+    //     duration: 10,
+    //     result: true,
+    //   },
+    // ]);
+  });
+  board.on("on-tap-skip", (data) => {
+    console.log("on-tap-skip", data);
   });
 
-  que.board.on("on-tap-confirm", (data) => {
-    // console.log("ontap", data);
-    // 开始答题
-    // 答题结果
-    // 关闭答题
-    // 使用 promise 模拟异步可以在这里进行异步请求
-    // 最好返回一个 promise 对象，promise 这里会有一个loading的状态控制
-    // 模拟一个在外部进行的异步请求提交答案，当前提交答案也可以在组件中直接提交，无所谓，
-    // 最后要把把题目的答案更新到题目中。
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // 设置该题目的答案
-        const data1 = data.map((it) => {
-          it.result = Math.random() > 0.5 ? 1 : 2;
-          return it;
-        });
-        // 更新答题结果【伪造的result作为答题的结果】
-        que.update(data1);
-        resolve();
-      }, 3000);
-    });
-  });
+  /**
+   * 新的使用办法
+   */
 
-  que.board.on("on-tap-skip", (data) => {
-    console.log("ontap-skip", data);
-  });
+  // initQue();
+  // player.$video.on("seeked.event", function () {
+  //   player.$video.trigger("pause");
+  //   return false;
+  // });
+  // player.$video.on("timeupdate", function () {
+  //   const time = parseInt(this.currentTime);
+  //   // 因此，在 insert 的时候，需要判断是否已经存在，如果存在，就不再插入
+  //   // const question = que.mark.get(time);
+  //   const question1 = que.mark.getOne(time);
+  //   const skim = que.mark.getSkim(time);
+  //   // question 是一个数组，因为可能存在多个问题
+  //   // question1 是一个对象，因为只有一个问题, 这个比较烦
+  //   // 如果问题没有答案，并且从未打开过。就打开题目、
+  //   if (!skim && time === (question1 && question1.duration)) {
+  //     que.mark.setSkim(time, question1);
+  //     que.board.open([question1]);
+  //     player.$video.trigger("pause");
+  //   }
+  // });
 };
+// 旧的使用办法
+// const initQue = () => {
+//   que = new Question(
+//     player,
+//     [
+//       {
+//         id: 1,
+//         label: "1",
+//         duration: 10,
+//       },
+//       {
+//         id: 2,
+//         label: 2,
+//         duration: 20,
+//       },
+//     ],
+//     {
+//       duration: 46,
+//     }
+//   );
+
+//   que.mark.on("on-click", (data) => {
+//     console.log("on-click", data, 1);
+//   });
+
+//   que.board.on("on-tap-confirm", (data) => {
+//     // console.log("ontap", data);
+//     // 开始答题
+//     // 答题结果
+//     // 关闭答题
+//     // 使用 promise 模拟异步可以在这里进行异步请求
+//     // 最好返回一个 promise 对象，promise 这里会有一个loading的状态控制
+//     // 模拟一个在外部进行的异步请求提交答案，当前提交答案也可以在组件中直接提交，无所谓，
+//     // 最后要把把题目的答案更新到题目中。
+//     return new Promise((resolve) => {
+//       setTimeout(() => {
+//         // 设置该题目的答案
+//         const data1 = data.map((it) => {
+//           it.result = Math.random() > 0.5 ? 1 : 2;
+//           return it;
+//         });
+//         // 更新答题结果【伪造的result作为答题的结果】
+//         que.update(data1);
+//         resolve();
+//       }, 3000);
+//     });
+//   });
+
+//   que.board.on("on-tap-skip", (data) => {
+//     console.log("ontap-skip", data);
+//   });
+// };
 
 // import Xtplayer from "../utils/Xtplayer.min.js";
 
@@ -353,33 +404,36 @@ onMounted(() => {
 });
 
 const onTap = () => {
-  console.log(que.mark.has(40));
+  eventsLine.insert(30);
+  eventsLine.insert(40);
+  // console.log(que.mark.has(40));
   // insert 当然可以多个，但是如果产品没有需求
   // 建议 insert之前，先判断是否已经存在，如果存在，就不再插入
   // que.mark.has(40) 或者 getOne都可以
   //  40s 之前已经存在了，就不再插入了， 因为mark兼容了可以插入多个题目，如果只打算插入一个题目，请判断是否已经存在
-  que.mark.insert({
-    id: 3,
-    label: 3,
-    duration: 40,
-  });
-  que.mark.insert({
-    id: 4,
-    label: 4,
-    duration: 40,
-  });
-  que.mark.insert({
-    id: 5,
-    label: 5,
-    duration: 40,
-  });
+  // que.mark.insert({
+  //   id: 3,
+  //   label: 3,
+  //   duration: 40,
+  // });
+  // que.mark.insert({
+  //   id: 4,
+  //   label: 4,
+  //   duration: 40,
+  // });
+  // que.mark.insert({
+  //   id: 5,
+  //   label: 5,
+  //   duration: 40,
+  // });
   // console.log(Que.mark.has(40));
   // console.log("onTap", player);
   // player.$video.trigger("play");
 };
 const onTapR = () => {
+  eventsLine.remove(40);
   // Que.mark.moveTo(40, 30);
-  que.mark.clean();
+  // que.mark.clean();
   // Que.mark.remove({
   //   id: 4,
   //   label: 4,
@@ -406,8 +460,9 @@ const onTapR = () => {
 };
 
 const onTapG = () => {
-  console.log(que.mark.get());
-  console.log(que.mark.get(40));
+  eventsLine.moveTo(10, 2);
+  // console.log(que.mark.get());
+  // console.log(que.mark.get(40));
   // console.log("onTap", player);
   // player.$video.trigger("play");
 };

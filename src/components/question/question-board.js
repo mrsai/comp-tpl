@@ -40,9 +40,8 @@ QuestionBoard.prototype.open = function (question) {
  * 可以尝试 watch，待会儿测试一下
  */
 
-QuestionBoard.prototype.applay = function () {
-  const origin = [...this.instance.question];
-  this.instance.question = origin;
+QuestionBoard.prototype.applay = function (question) {
+  this.instance.question = question;
 };
 
 /**

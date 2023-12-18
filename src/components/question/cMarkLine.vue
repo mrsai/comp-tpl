@@ -1,7 +1,7 @@
 <template>
   <div class="c-mark-line">
     <div
-      v-for="(_, d) in props.marks"
+      v-for="d in props.marks"
       v-text="d"
       :key="d"
       :style="{
@@ -28,8 +28,8 @@ const props = defineProps({
     required: true,
   },
   marks: {
-    type: Object,
-    default: () => {},
+    type: Array,
+    default: () => [],
   },
   onClick: {
     type: Function,
