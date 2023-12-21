@@ -1,128 +1,130 @@
 <template>
   <div id="app">
-    <CTimeline />
-    <CTabs @on-tab-change="onTabChange" :tab-list="tabList">
-      <template #overview>
-        <COverview :step="overview.step" :content="overview.content" />
-      </template>
-      <template #exercises>
-        <CExercises
-          @on-tap-question-del="onTapQuestionDel"
-          @on-tap-question-edit="onTapQuestionEdit"
-          @on-tap-question-preview="onTapQuestionPreview"
-        />
-      </template>
-      <template #caption>
-        <CCaption @on-tap-caption="onTapCaption" />
-      </template>
-    </CTabs>
-    <CAction
-      @on-tap-location="onTapLocation"
-      @on-tap-inert-manual="onTapInertManual"
-      @on-tap-inert-intelligent="onTapInertIntelligent"
-    />
-    <CGenerateQuestions
-      ref="IntelligentQuestionRef"
-      @on-tap-insert="onTapInsert"
-      @on-tap-remove="onTapRemove"
-    />
-    <CPlayer />
-
-    <el-button type="primary" @click="open">OpenADialog</el-button>
-
-    <CDialog
-      ref="cDialogRef"
-      title="智能出题"
-      @on-confirm="onConfirm"
-      @on-cancel="onCancel"
-      >我是一个弹窗</CDialog
-    >
+    <el-slider v-model="scale"> </el-slider>
+    <div id="timeline"></div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, reactive } from "vue";
-import CTabs from "./components/cTabs.vue";
-import CAction from "./components/cActions.vue";
-import COverview from "./components/cOverview.vue";
-import CCaption from "./components/cCaption.vue";
-import CExercises from "./components/cExercises.vue";
-import CPlayer from "./components/cPlayer.vue";
-import CGenerateQuestions from "./components/cGenerateQuestions.vue";
-import CDialog from "./components/cDialog.vue";
-import CTimeline from "./components/cTimeline.vue";
+import { onMounted, ref, watchEffect } from "vue";
+// 最大的格子是 一个格子最大50像素，最小20像素，单位是秒，一个格子代表5s
+// 距离20个像素，分配到100%，然后分为三个区域，[0,33.3][33.3,66.6][66.9-100]
 
-const IntelligentQuestionRef = ref(null);
-const cDialogRef = ref(null);
+const scale = ref(100); // 缩放步长
+// 60000像素 3000s
+// 视频时长
+let duration = 3000;
+// 1像素3s，10像素30
 
-const tabs = ref([
-  {
-    label: "视频概览",
-    key: "overview",
-  },
-  {
-    label: "视频习题",
-    key: "exercises",
-  },
-  {
-    label: "字幕",
-    key: "caption",
-  },
-]);
+// 传入的时间是 360s,
+// 按照最大的计算，
+// 格子数
 
-const tabList = computed(() => tabs.value);
-const onTabChange = (v1) => {
-  console.log("onTabChange", console.log(v1));
-};
+let drawAll = null;
 
-const onTapLocation = (utime) => {
-  console.log(utime);
-};
-const onTapInertManual = (utime) => {
-  console.log(utime);
-};
-const onTapInertIntelligent = (utime) => {
-  console.log(utime);
-};
-
-const onTapCaption = (line) => {
-  console.log(line);
-};
-
-const overview = reactive({
-  step: 4,
-  content: "暂无内容",
+watchEffect(() => {
+  if (scale.value && drawAll) {
+    drawAll(scale.value);
+  }
 });
 
-// 题目的增删改查
-const onTapQuestionDel = (it) => {
-  console.log(it, "del");
-};
-const onTapQuestionEdit = (it) => {
-  console.log(it, "edit");
-};
-const onTapQuestionPreview = (it) => {
-  IntelligentQuestionRef.value.open();
-  console.log(it, "preview");
-};
+onMounted(() => {
+  const container = document.getElementById("timeline");
+  let conf = {
+    second: {
+      max: 80, // 格子最大宽度
+      min: 40, // 格子最小宽度
+      unit: "s", // 单位
+      time: 5, // 一个格子代表的时间
+      f: 5, // 格式化文本展示时间，
+      m: 3600, // 一个canvas最长绘制的时间是3600s
+    },
 
-// 插入题目
-const onTapInsert = (it) => {
-  console.log(it, "insert");
-};
-const onTapRemove = (it) => {
-  console.log(it, "remove");
-};
+    minite: {
+      max: 80,
+      min: 40,
+      unit: "m",
+      time: 60,
+      f: 1,
+      m: 60, // 一个canvas最长绘制的时间是60分钟
+    },
+  };
+  let currentUnit = {};
 
-const open = () => {
-  cDialogRef.value.openDialog();
-};
-const onConfirm = () => {
-  console.log("onConfirm");
-  cDialogRef.value.closeDialog();
-};
+  const computedWithSecond = (duration) => {
+    // 可升缩的宽度
+    let dis = currentUnit.max - currentUnit.min;
+    // 50 表示拖拽的值的中间值。计算拖拽修改的是分钟（大于50）区域还是秒钟（小于）区域
+    let r = scale.value % 50 === 0 ? 50 : scale.value % 50;
+    // 每个格子的宽度
+    let perGridWidth = currentUnit.min + (dis / 50) * r;
+    perGridWidth = parseInt(perGridWidth, 10);
+    // 格子数
+    let gridCount = Math.ceil(duration / currentUnit.time);
+    // canvas宽度
+    let canvasWidth = perGridWidth * gridCount;
+    return { perGridWidth, gridCount, canvasWidth };
+  };
 
-const onCancel = () => {};
+  let drawTimeline = (ctx, canvas, start, duration) => {
+    // 根据缩放比例计算时间刻度尺的宽度
+    const { perGridWidth, gridCount, canvasWidth } =
+      computedWithSecond(duration);
+    canvas.width = canvasWidth;
+    ctx.clearRect(0, 0, canvasWidth, 100);
+
+    // 根据缩放比例计算时间刻度尺的宽度
+    // 绘制刻度线
+    ctx.beginPath();
+    ctx.moveTo(0, 40);
+    ctx.lineTo(canvasWidth, 40);
+    ctx.stroke();
+
+    // 绘制刻度标签
+    ctx.fillStyle = "#000";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    for (let i = 0; i <= gridCount; i += 1) {
+      ctx.fillText(
+        start * currentUnit.m + i * currentUnit.f + currentUnit.unit,
+        i * perGridWidth,
+        10
+      );
+    }
+  };
+
+  const create = () => {
+    let all = [];
+    const cc = Math.ceil(duration / 3600);
+    for (let i = 0; i < cc; i++) {
+      const canvas = document.createElement("canvas");
+      container.appendChild(canvas);
+      const ctx = canvas.getContext("2d");
+      const currentDuration = i === cc - 1 ? duration - i * 3600 : 3600;
+      all.push({
+        canvas,
+        ctx,
+        currentDuration,
+        start: i,
+      });
+    }
+    return all;
+  };
+
+  const all = create();
+  drawAll = (value) => {
+    if (value > 50) {
+      currentUnit = conf.second;
+    } else {
+      currentUnit = conf.minite;
+    }
+    all.forEach((it) => {
+      drawTimeline(it.ctx, it.canvas, it.start, it.currentDuration);
+    });
+  };
+
+  drawAll(scale.value);
+});
 </script>
 
 <style>
@@ -132,5 +134,9 @@ const onCancel = () => {};
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   margin-top: 60px;
+}
+#timeline {
+  border: 1px solid #000;
+  display: flex;
 }
 </style>
