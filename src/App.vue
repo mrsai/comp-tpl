@@ -13,7 +13,7 @@ import { onMounted, ref, watchEffect } from "vue";
 const scale = ref(100); // 缩放步长
 // 60000像素 3000s
 // 视频时长
-let duration = 3000;
+let duration_total = 1800;
 // 1像素3s，10像素30
 
 // 传入的时间是 360s,
@@ -27,6 +27,10 @@ watchEffect(() => {
     drawAll(scale.value);
   }
 });
+
+// if(duration < 1320) {
+//   disabled.value = true
+// }
 
 onMounted(() => {
   const container = document.getElementById("timeline");
@@ -56,13 +60,22 @@ onMounted(() => {
     let dis = currentUnit.max - currentUnit.min;
     // 50 表示拖拽的值的中间值。计算拖拽修改的是分钟（大于50）区域还是秒钟（小于）区域
     let r = scale.value % 50 === 0 ? 50 : scale.value % 50;
-    // 每个格子的宽度
+    // 每个格子的宽度，动态调整
     let perGridWidth = currentUnit.min + (dis / 50) * r;
     perGridWidth = parseInt(perGridWidth, 10);
     // 格子数
     let gridCount = Math.ceil(duration / currentUnit.time);
+    // duration_total < 3600 假设一个canvas最长绘制的时间是3600s
+    // 如果时间太短，则需要重新安排格子的宽度，把容器宽度除以格子个数，计算出格子实际的宽度。
+    if (
+      perGridWidth * gridCount <= container.offsetWidth &&
+      duration_total < 3600
+    ) {
+      perGridWidth = container.offsetWidth / gridCount;
+    }
     // canvas宽度
     let canvasWidth = perGridWidth * gridCount;
+    // 计算每个格子的宽度，以及格子的数量，canvas的宽度
     return { perGridWidth, gridCount, canvasWidth };
   };
 
@@ -95,12 +108,12 @@ onMounted(() => {
 
   const create = () => {
     let all = [];
-    const cc = Math.ceil(duration / 3600);
+    const cc = Math.ceil(duration_total / 3600);
     for (let i = 0; i < cc; i++) {
       const canvas = document.createElement("canvas");
       container.appendChild(canvas);
       const ctx = canvas.getContext("2d");
-      const currentDuration = i === cc - 1 ? duration - i * 3600 : 3600;
+      const currentDuration = i === cc - 1 ? duration_total - i * 3600 : 3600;
       all.push({
         canvas,
         ctx,
@@ -118,6 +131,7 @@ onMounted(() => {
     } else {
       currentUnit = conf.minite;
     }
+    // 1320 是 容器宽度除以各自数乘以60秒计算出来的
     all.forEach((it) => {
       drawTimeline(it.ctx, it.canvas, it.start, it.currentDuration);
     });

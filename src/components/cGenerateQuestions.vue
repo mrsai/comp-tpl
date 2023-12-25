@@ -12,25 +12,31 @@
       <div class="questions-content">
         <div class="flex flex-col" v-if="CurrentStatus.NotStarted">
           <div class="flex justify-between">
-            <span>正在准备生成题目</span>
+            <span>未执行生成操作 -1</span>
           </div>
         </div>
         <div class="flex flex-col" v-if="CurrentStatus.Processing">
           <div class="flex justify-between">
-            <span>正在生成题目...</span>
+            <span>正在生成题目... 0</span>
             <el-link type="primary" @click="stopTask">结束任务</el-link>
           </div>
           <el-progress :percentage="50"></el-progress>
         </div>
         <div class="flex flex-col" v-if="CurrentStatus.Error">
           <div class="flex justify-between">
-            <span>生成题目出错</span>
+            <span>生成题目出错 1</span>
             <el-link type="primary" @click="startTask">重新生成</el-link>
           </div>
         </div>
         <div class="flex flex-col" v-if="CurrentStatus.Interrupted">
           <div class="flex justify-between">
-            <span>题目生成被取消</span>
+            <span>题目生成被取消 3</span>
+            <el-link type="primary" @click="startTask">继续生成</el-link>
+          </div>
+        </div>
+        <div class="flex flex-col" v-if="CurrentStatus.Interrupted">
+          <div class="flex justify-between">
+            <span>成功 3</span>
             <el-link type="primary" @click="startTask">继续生成</el-link>
           </div>
         </div>
